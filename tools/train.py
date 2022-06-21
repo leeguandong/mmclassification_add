@@ -16,13 +16,14 @@ from mmcls import __version__
 from mmcls.apis import init_random_seed, set_random_seed, train_model
 from mmcls.datasets import build_dataset
 from mmcls.models import build_classifier
-from mmcls.utils import collect_env, get_root_logger, setup_multi_processes
+from mmcls.utils import get_root_logger, setup_multi_processes
+from mmcls_add.utils import collect_env
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a model')
-    parser.add_argument('--config', default="../configs/ghostnet/ghostnet_b32_imagenet.py", help='train config file path')
-    parser.add_argument('--work-dir', default="../results", help='the dir to save logs and models')
+    parser.add_argument('--config', help='train config file path')
+    parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
     parser.add_argument(
@@ -49,6 +50,11 @@ def parse_args():
         default=0,
         help='id of gpu to use '
              '(only applicable to non-distributed training)')
+    parser.add_argument(
+        '--ipu-replicas',
+        type=int,
+        default=None,
+        help='num of ipu replicas to use')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
     parser.add_argument(
         '--diff-seed',
@@ -73,7 +79,7 @@ def parse_args():
         choices=['none', 'pytorch', 'slurm', 'mpi'],
         default='none',
         help='job launcher')
-    parser.add_argument('--local-rank', type=int, default=0)
+    parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -118,6 +124,10 @@ def main():
                       'in `gpu_ids` now.')
     if args.gpus is None and args.gpu_ids is None:
         cfg.gpu_ids = [args.gpu_id]
+
+    if args.ipu_replicas is not None:
+        cfg.ipu_replicas = args.ipu_replicas
+        args.device = 'ipu'
 
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
@@ -186,7 +196,7 @@ def main():
         distributed=distributed,
         validate=(not args.no_validate),
         timestamp=timestamp,
-        device='cpu' if args.device == 'cpu' else 'cuda',
+        device=args.device,
         meta=meta)
 
 
