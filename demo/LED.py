@@ -28,7 +28,7 @@ def main():
     lines = list_from_file(args.img)
     progressbar = ProgressBar(task_num=len(lines))
 
-    led_csv = pd.DataFrame(np.zeros((len(lines), 2)), columns=['image', 'label'])
+    led_csv = pd.DataFrame(np.zeros((len(lines), 2)), columns=['image', 'label']).astype(str)
 
     for index, line in enumerate(lines):
         progressbar.update()

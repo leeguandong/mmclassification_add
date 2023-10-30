@@ -10,7 +10,7 @@ model = dict(
     neck=dict(type='GlobalAveragePooling'),
     head=dict(
         type='MultiLabelLinearClsHead',
-        num_classes=1000,
+        num_classes=2,
         in_channels=2048,
         loss=dict(type='CrossEntropyLoss', loss_weight=1.0, use_soft=True)),
     train_cfg=dict(
